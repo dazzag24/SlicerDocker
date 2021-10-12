@@ -1,5 +1,44 @@
-FROM debian:bullseye-20200422-slim
+ARG BASE_IMAGE=debian:bullseye-20200422-slim
+FROM $BASE_IMAGE AS builder
 
+################################################################################
+# Prevent apt-get from prompting for keyboard choice
+#  https://superuser.com/questions/1356914/how-to-install-xserver-xorg-in-unattended-mode
+ENV DEBIAN_FRONTEND=noninteractive
+
+################################################################################
+# Remove documentation to save hard drive space
+#  https://askubuntu.com/questions/129566/remove-documentation-to-save-hard-drive-space
+COPY etc/dpkg/dpkg.cfg.d/01_nodoc /etc/dpkg/dpkg.cfg.d/01_nodoc
+
+################################################################################
+# - update apt, set up certs, run netselect to get fast mirror
+# - reduce apt gravity
+# - and disable caching
+#   from https://blog.sleeplessbeastie.eu/2017/10/02/how-to-disable-the-apt-cache/
+RUN echo 'APT::Install-Recommends "0" ; APT::Install-Suggests "0" ;' >> /etc/apt/apt.conf && \
+    echo 'Dir::Cache::pkgcache "";\nDir::Cache::srcpkgcache "";' | tee /etc/apt/apt.conf.d/00_disable-cache-files && \
+    apt-get update -q -y
+
+# Build rebind.so (required by websockify)
+RUN set -x && \
+    apt-get install -y build-essential git && \
+    apt-get install -yq --reinstall ca-certificates && \
+    mkdir src && \
+    cd src && \
+    git clone https://github.com/novnc/websockify websockify && \
+    cd websockify && \
+    make
+    #make && \
+    #cp rebind.so /usr/lib/ && \
+    #cd .. && \
+    #rm -rf websockify && \
+    #cd .. && \
+    #rmdir src && \
+    #apt-get purge -y --auto-remove build-essential
+
+
+FROM $BASE_IMAGE
 ################################################################################
 # Prevent apt-get from prompting for keyboard choice
 #  https://superuser.com/questions/1356914/how-to-install-xserver-xorg-in-unattended-mode
@@ -27,25 +66,29 @@ RUN echo 'APT::Install-Recommends "0" ; APT::Install-Suggests "0" ;' >> /etc/apt
 #   - slicer dependencies
 #   - awesome window manager
 #   - install ca-certs to prevent - fatal: unable to access 'https://github.com/novnc/websockify/': server certificate verification failed. CAfile: none CRLfile: none
-RUN apt-get install -q -y \
- vim net-tools curl \
- libgl1-mesa-glx \
- xserver-xorg-video-dummy \
- libxrender1 \
- libpulse0 \
- libpulse-mainloop-glib0  \
- libnss3  \
- libxcomposite1 \
- libxcursor1 \
- libfontconfig1 \
- libxrandr2 \
- libasound2 \
- libglu1 \
- x11vnc \
- awesome \
- jq \
- git && \
- apt-get install -q -y --reinstall ca-certificates
+RUN apt-get install -yq \
+        vim net-tools curl apt-utils \
+        libgl1-mesa-glx \
+        xserver-xorg-video-dummy \
+        libxrender1 \
+        libpulse0 \
+        libpulse-mainloop-glib0  \
+        libnss3  \
+        libxcomposite1 \
+        libxcursor1 \
+        libfontconfig1 \
+        libxrandr2 \
+        libasound2 \
+        libglu1 \
+        x11vnc \
+        awesome \
+        jq \
+        git \
+    && apt-get install -q -y --reinstall ca-certificates \
+    && curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get install nodejs \
+    && npm install -g configurable-http-proxy@^4.5.0 \
+    && rm -rf ~/.npm
 
 ################################################################################
 # set up user
@@ -86,20 +129,7 @@ COPY xorg.conf .
 ################################################################################
 # Set up remote desktop access - step 1/2
 
-# Build rebind.so (required by websockify)
-RUN set -x && \
-    apt-get install -y build-essential --no-install-recommends && \
-    mkdir src && \
-    cd src && \
-    git clone https://github.com/novnc/websockify websockify && \
-    cd websockify && \
-    make && \
-    cp rebind.so /usr/lib/ && \
-    cd .. && \
-    rm -rf websockify && \
-    cd .. && \
-    rmdir src && \
-    apt-get purge -y --auto-remove build-essential
+COPY --from=builder src/websockify/rebind.so /usr/lib/rebind.so
 
 # Set up launcher for websockify
 # (websockify must run in  Slicer's Python environment)
@@ -129,10 +159,10 @@ RUN /home/sliceruser/Slicer/bin/PythonSlicer -m pip install --upgrade pip
 # Now install websockify and jupyter-server-proxy (fixed at tag v1.6.0)
 RUN /home/sliceruser/Slicer/bin/PythonSlicer -m pip install --upgrade websockify && \
     cp /usr/lib/rebind.so /home/sliceruser/Slicer/lib/Python/lib/python3.6/site-packages/websockify/ && \
-    /home/sliceruser/Slicer/bin/PythonSlicer -m pip install notebook jupyterhub jupyterlab && \
+    /home/sliceruser/Slicer/bin/PythonSlicer -m pip install notebook jupyterhub jupyterlab jupyter-server-proxy && \
     /home/sliceruser/Slicer/bin/PythonSlicer -m pip install -e \
-        git+https://github.com/lassoan/jupyter-desktop-server#egg=jupyter-desktop-server \
-        git+https://github.com/jupyterhub/jupyter-server-proxy@v1.6.0#egg=jupyter-server-proxy
+        git+https://github.com/lassoan/jupyter-desktop-server#egg=jupyter-desktop-server 
+#        git+https://github.com/jupyterhub/jupyter-server-proxy@v1.6.0#egg=jupyter-server-proxy
 
 ################################################################################
 # Install Slicer extensions
