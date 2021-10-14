@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=debian:bullseye-20200422-slim
+ARG BASE_IMAGE=debian:bullseye-20211011-slim
 FROM $BASE_IMAGE AS builder
 
 ################################################################################
@@ -99,7 +99,7 @@ WORKDIR ${HOME}
 ################################################################################
 # Download and unpack Slicer
 
-# Current preview release
+# Current preview release - release 30314 built 2021-10-14
 ARG SLICER_DOWNLOAD_URL=https://download.slicer.org/bitstream/6167ae45342a877cb3cfa73a
 
 # Latest working Slicer-4.11 version (SlicerJupyter extension is not available for the more recent Slicer-4.11.20210226 version)
