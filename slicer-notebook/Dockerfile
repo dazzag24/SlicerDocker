@@ -29,13 +29,6 @@ RUN set -x && \
     git clone https://github.com/novnc/websockify websockify && \
     cd websockify && \
     make
-    #make && \
-    #cp rebind.so /usr/lib/ && \
-    #cd .. && \
-    #rm -rf websockify && \
-    #cd .. && \
-    #rmdir src && \
-    #apt-get purge -y --auto-remove build-essential
 
 
 FROM $BASE_IMAGE
@@ -107,7 +100,7 @@ WORKDIR ${HOME}
 # Download and unpack Slicer
 
 # Current preview release
-ARG SLICER_DOWNLOAD_URL=https://download.slicer.org/bitstream/615fc637342a877cb3cd343f
+ARG SLICER_DOWNLOAD_URL=https://download.slicer.org/bitstream/6167ae45342a877cb3cfa73a
 
 # Latest working Slicer-4.11 version (SlicerJupyter extension is not available for the more recent Slicer-4.11.20210226 version)
 #ARG SLICER_DOWNLOAD_URL=https://download.slicer.org/bitstream/60add70fae4540bf6a89bfb4
@@ -162,7 +155,6 @@ RUN /home/sliceruser/Slicer/bin/PythonSlicer -m pip install --upgrade websockify
     /home/sliceruser/Slicer/bin/PythonSlicer -m pip install notebook jupyterhub jupyterlab jupyter-server-proxy && \
     /home/sliceruser/Slicer/bin/PythonSlicer -m pip install -e \
         git+https://github.com/lassoan/jupyter-desktop-server#egg=jupyter-desktop-server 
-#        git+https://github.com/jupyterhub/jupyter-server-proxy@v1.6.0#egg=jupyter-server-proxy
 
 ################################################################################
 # Install Slicer extensions
