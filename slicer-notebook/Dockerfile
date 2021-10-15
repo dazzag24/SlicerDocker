@@ -99,8 +99,8 @@ WORKDIR ${HOME}
 ################################################################################
 # Download and unpack Slicer
 
-# Current preview release - release 30314 built 2021-10-14
-ARG SLICER_DOWNLOAD_URL=https://download.slicer.org/bitstream/6167ae45342a877cb3cfa73a
+# Current preview release - release 30315 built 2021-10-15
+ARG SLICER_DOWNLOAD_URL=https://download.slicer.org/bitstream/61690039342a877cb3d01245
 
 # Latest working Slicer-4.11 version (SlicerJupyter extension is not available for the more recent Slicer-4.11.20210226 version)
 #ARG SLICER_DOWNLOAD_URL=https://download.slicer.org/bitstream/60add70fae4540bf6a89bfb4
@@ -145,6 +145,10 @@ ENV XDG_RUNTIME_DIR=/tmp/runtime-sliceruser
 # Install websockify
 # Copy rebind.so into websockify folder so websockify can find it
 # Install Jupyter desktop (configures noVNC connection adds a new "Desktop" option in New menu in Jupyter)
+# Install some JupyerLab extensions:
+# https://github.com/jupyterlab/jupyterlab-git
+# https://github.com/jupyterlab/pull-requests
+# https://github.com/QuantStack/jupyterlab-drawio
 
 # First upgrade pip
 RUN /home/sliceruser/Slicer/bin/PythonSlicer -m pip install --upgrade pip
@@ -152,7 +156,7 @@ RUN /home/sliceruser/Slicer/bin/PythonSlicer -m pip install --upgrade pip
 # Now install websockify and jupyter-server-proxy (fixed at tag v1.6.0)
 RUN /home/sliceruser/Slicer/bin/PythonSlicer -m pip install --upgrade websockify && \
     cp /usr/lib/rebind.so /home/sliceruser/Slicer/lib/Python/lib/python3.6/site-packages/websockify/ && \
-    /home/sliceruser/Slicer/bin/PythonSlicer -m pip install notebook jupyterhub jupyterlab jupyter-server-proxy jupyterlab-git jupyterlab-drawio && \
+    /home/sliceruser/Slicer/bin/PythonSlicer -m pip install notebook jupyterhub jupyterlab jupyter-server-proxy jupyterlab-git jupyterlab-drawio jupyterlab-pullrequests diff-match-patch && \
     /home/sliceruser/Slicer/bin/PythonSlicer -m pip install -e \
         git+https://github.com/lassoan/jupyter-desktop-server#egg=jupyter-desktop-server 
 
