@@ -149,6 +149,7 @@ ENV XDG_RUNTIME_DIR=/tmp/runtime-sliceruser
 # https://github.com/jupyterlab/jupyterlab-git
 # https://github.com/jupyterlab/pull-requests
 # https://github.com/QuantStack/jupyterlab-drawio
+# https://github.com/Bloomberg/ipydatagrid
 
 # First upgrade pip
 RUN /home/sliceruser/Slicer/bin/PythonSlicer -m pip install --upgrade pip
@@ -156,7 +157,7 @@ RUN /home/sliceruser/Slicer/bin/PythonSlicer -m pip install --upgrade pip
 # Now install websockify and jupyter-server-proxy (fixed at tag v1.6.0)
 RUN /home/sliceruser/Slicer/bin/PythonSlicer -m pip install --upgrade websockify && \
     cp /usr/lib/rebind.so /home/sliceruser/Slicer/lib/Python/lib/python3.6/site-packages/websockify/ && \
-    /home/sliceruser/Slicer/bin/PythonSlicer -m pip install notebook jupyterhub jupyterlab jupyter-server-proxy jupyterlab-git jupyterlab-drawio jupyterlab-pullrequests diff-match-patch && \
+    /home/sliceruser/Slicer/bin/PythonSlicer -m pip install notebook jupyterhub jupyterlab jupyter-server-proxy jupyterlab-git jupyterlab-drawio jupyterlab-pullrequests diff-match-patch ipydatagrid && \
     /home/sliceruser/Slicer/bin/PythonSlicer -m pip install -e \
         git+https://github.com/lassoan/jupyter-desktop-server#egg=jupyter-desktop-server 
 
