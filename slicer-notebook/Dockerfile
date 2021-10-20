@@ -99,8 +99,8 @@ WORKDIR ${HOME}
 ################################################################################
 # Download and unpack Slicer
 
-# Current preview release - release 30315 built 2021-10-15
-ARG SLICER_DOWNLOAD_URL=https://download.slicer.org/bitstream/61690039342a877cb3d01245
+# Current preview release - release 30321 built 2021-10-20
+ARG SLICER_DOWNLOAD_URL=https://download.slicer.org/bitstream/616f9798342a877cb3d1eb69
 
 # Latest working Slicer-4.11 version (SlicerJupyter extension is not available for the more recent Slicer-4.11.20210226 version)
 #ARG SLICER_DOWNLOAD_URL=https://download.slicer.org/bitstream/60add70fae4540bf6a89bfb4
@@ -128,6 +128,13 @@ COPY --from=builder src/websockify/rebind.so /usr/lib/rebind.so
 # (websockify must run in  Slicer's Python environment)
 COPY websockify ./Slicer/bin/
 RUN chmod +x ${HOME}/Slicer/bin/websockify
+
+# RUN echo '\
+# \n\
+# \n\
+# - - Autorun slicer UI\n\
+# awful.util.spawn("/home/sliceruser/Slicer/Slicer")\
+#  ' >> /etc/xdg/awesome/rc.lua
 
 ################################################################################
 # Need to run Slicer as non-root because
@@ -157,7 +164,7 @@ RUN /home/sliceruser/Slicer/bin/PythonSlicer -m pip install --upgrade pip
 # Now install websockify and jupyter-server-proxy (fixed at tag v1.6.0)
 RUN /home/sliceruser/Slicer/bin/PythonSlicer -m pip install --upgrade websockify && \
     cp /usr/lib/rebind.so /home/sliceruser/Slicer/lib/Python/lib/python3.6/site-packages/websockify/ && \
-    /home/sliceruser/Slicer/bin/PythonSlicer -m pip install notebook jupyterhub jupyterlab jupyter-server-proxy jupyterlab-git jupyterlab-drawio jupyterlab-pullrequests diff-match-patch ipydatagrid && \
+    /home/sliceruser/Slicer/bin/PythonSlicer -m pip install notebook jupyterhub jupyterlab jupyter-server-proxy jupyterlab-git jupyterlab-drawio jupyterlab-pullrequests diff-match-patch ipydatagrid nbstripout && \
     /home/sliceruser/Slicer/bin/PythonSlicer -m pip install -e \
         git+https://github.com/lassoan/jupyter-desktop-server#egg=jupyter-desktop-server 
 
