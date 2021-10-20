@@ -17,6 +17,7 @@ source $script_dir/start-xorg.sh
 # Do not start a window manager to make the remote desktop look more like a simple
 # remote view rather than a complete remote computer.
 #awesome &
+/home/sliceruser/Slicer/Slicer &
 
 
 ################################################################################
