@@ -19,6 +19,10 @@ source $script_dir/start-xorg.sh
 #awesome &
 /home/sliceruser/Slicer/Slicer &
 
+################################################################################
+# Set jupyter terminal to bash (better auto-complete, etc. than default sh)
+
+export SHELL=/bin/bash
 
 ################################################################################
 # this needs to be last
