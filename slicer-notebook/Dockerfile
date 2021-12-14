@@ -16,9 +16,9 @@ COPY etc/dpkg/dpkg.cfg.d/01_nodoc /etc/dpkg/dpkg.cfg.d/01_nodoc
 # - reduce apt gravity
 # - and disable caching
 #   from https://blog.sleeplessbeastie.eu/2017/10/02/how-to-disable-the-apt-cache/
+# Note: in each RUN command "apt-get update" must be called before apt-get is used.
 RUN echo 'APT::Install-Recommends "0" ; APT::Install-Suggests "0" ;' >> /etc/apt/apt.conf && \
-    echo 'Dir::Cache::pkgcache "";\nDir::Cache::srcpkgcache "";' | tee /etc/apt/apt.conf.d/00_disable-cache-files && \
-    apt-get update -q -y
+    echo 'Dir::Cache::pkgcache "";\nDir::Cache::srcpkgcache "";' | tee /etc/apt/apt.conf.d/00_disable-cache-files
 
 # Build rebind.so (required by websockify)
 RUN set -x && \
@@ -53,14 +53,15 @@ RUN echo 'APT::Install-Recommends "0" ; APT::Install-Suggests "0" ;' >> /etc/apt
 
 ################################################################################
 # get packages
-# - update
+# - update (without update, old cached server addresses may be used and apt-get install may fail)
 # - install things
 #   - basic  tools
 #   - slicer dependencies
 #   - awesome window manager
 #   - install ca-certs to prevent - fatal: unable to access 'https://github.com/novnc/websockify/': server certificate verification failed. CAfile: none CRLfile: none
-RUN apt-get install -yq \
-        vim net-tools curl apt-utils \
+RUN apt-get update -q -y && \
+        apt-get install -q -y \
+        vim net-tools curl \
         libgl1-mesa-glx \
         xserver-xorg-video-dummy \
         libxrender1 \
@@ -181,7 +182,7 @@ EXPOSE $VNCPORT $JUPYTERPORT
 COPY run.sh .
 ENTRYPOINT ["/home/sliceruser/run.sh"]
 
-CMD ["sh", "-c", "./Slicer/bin/PythonSlicer -m jupyter notebook --port=$JUPYTERPORT --ip=0.0.0.0 --no-browser"]
+CMD ["sh", "-c", "./Slicer/bin/PythonSlicer -m jupyter notebook --port=$JUPYTERPORT --ip=0.0.0.0 --no-browser --NotebookApp.default_url=/lab/"]
 
 ################################################################################
 # Install Slicer application startup script
